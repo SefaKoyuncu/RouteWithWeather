@@ -185,7 +185,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         initPlacesSDK();
 
-        binding.imageViewChange.setOnClickListener(view -> {
+        binding.imageViewChange.setOnClickListener(view ->
+        {
+            if (startLatLngFromEdittext == null && myLocationltlng != null)
+            {
+                startLatLngFromEdittext = myLocationltlng;
+            }
+
             String newFromPlaceName = binding.editTextTo.getText().toString();
             String newToPlaceName = binding.editTextFrom.getText().toString();
             binding.editTextFrom.setText(newFromPlaceName);
@@ -281,6 +287,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (fromName == null) {
                 fromName = "Current Location";
             }
+            if (toName == null) {
+                toName = "Current Location";
+            }
             intent.putExtra("fromName", fromName);
             intent.putExtra("toName", toName);
             intent.putExtra("startTime", startTime);
@@ -329,7 +338,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(MapsActivity.this, "Please fill in the blank area!", Toast.LENGTH_SHORT).show();
             }
             else {
-                if (startLatLngFromEdittext == null) {
+                if (startLatLngFromEdittext == null) { //start ta sıkıntı yok, end null.
                     Findroutes(myLocationltlng, endLatLngToEdittext);
                     startLatLngFromEdittext = myLocationltlng;
                 }
@@ -389,9 +398,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void requestPermision() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationPermission = true;
-        } else {    // eğer izin vermediyse izin iste
-            ActivityCompat.requestPermissions(MapsActivity.this,  new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
-        }
+        } else
+        {// eğer izin vermediyse izin iste
+
+
+            dialog.setContentView(R.layout.permission1);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            Button buttonOkPasswordInfo=dialog.findViewById(R.id.buttonOkPasswordInfo);
+            Button buttonOkPasswordInfoCancel=dialog.findViewById(R.id.buttonOkPasswordInfoCancel);
+            dialog.setCanceledOnTouchOutside(true);
+
+            buttonOkPasswordInfo.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View view)
+                {
+                    ActivityCompat.requestPermissions(MapsActivity.this,  new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
+                    dialog.dismiss();
+
+                }
+            });
+            buttonOkPasswordInfoCancel.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View view)
+                {
+                    dialog.dismiss();
+
+                }
+            });
+
+            dialog.show();
+            Log.e("burda","burda1");        }
     }
 
     // konum izni alıyor devamı
@@ -461,13 +499,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // izin verilmemişse sor
-    private void askPermission() {
+    private void askPermission()
+    {
 
-        ActivityCompat.requestPermissions(MapsActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE);
+        dialog.setContentView(R.layout.permission1);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        Button buttonOkPasswordInfo=dialog.findViewById(R.id.buttonOkPasswordInfo);
+        Button buttonOkPasswordInfoCancel=dialog.findViewById(R.id.buttonOkPasswordInfoCancel);
+        dialog.setCanceledOnTouchOutside(true);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+        buttonOkPasswordInfo.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+
+                if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Log.e("burda5","burda5");
+                    ActivityCompat.requestPermissions(MapsActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE);
+                    Log.e("burda4","burda4");
+                }
+                dialog.dismiss();
+
+            }
+        });
+        buttonOkPasswordInfoCancel.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                dialog.dismiss();
+
+            }
+        });
+
+        dialog.show();
 
     }
 
@@ -509,6 +575,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return true;
             }
         });
+
+        if (myLocationltlng != null){
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(myLocationltlng,10f);
+            mMap.animateCamera(cameraUpdate);
+        }
         //get destination location when user click on map
        /* mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -551,6 +622,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
+
+            if (myLocationltlng != null){
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(myLocationltlng,10f);
+                mMap.animateCamera(cameraUpdate);
+            }
+
         }
     }
 
@@ -608,7 +685,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // function to find Routes.
     public void Findroutes(LatLng Start, LatLng End) {
 
-        if (Start == null || End == null) {
+        if (Start == null || End == null)
+        {
+
             Toast.makeText(MapsActivity.this, "Unable to get location", Toast.LENGTH_LONG).show();
         } else {
             Routing routing = new Routing.Builder()
@@ -1261,7 +1340,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String temporaryUrl = "";
 
         String mainUrl = "https://api.weatherapi.com/v1/forecast.json?key=";
-        String weatherApiKey = "fa1fd96defb94768ac270319221208";
+        String weatherApiKey = "72a98768f162479cb79133207222605";
 
 
         temporaryUrl = mainUrl + weatherApiKey + "&q=" + latlon + "&days=2&aqi=no&alerts=no" ;
